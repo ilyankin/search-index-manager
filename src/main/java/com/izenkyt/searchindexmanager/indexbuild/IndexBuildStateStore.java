@@ -33,17 +33,24 @@ public class IndexBuildStateStore {
 
     @Transactional
     public IndexVersion markIndexVersionAsBuilt(UUID versionId,
-                                                long docCount,
-                                                long artifactSize,
-                                                String checksum,
-                                                String artifactKey) {
+                                                 long docCount,
+                                                 long artifactSize,
+                                                 String checksum) {
         IndexVersion version = getIndexVersion(versionId);
         version.setStatus(IndexVersionStatus.BUILT);
         version.setDocCount(docCount);
         version.setArtifactSize(artifactSize);
         version.setChecksum(checksum);
-        version.setArtifactKey(artifactKey);
         log.debug("Version {} status -> BUILT ({} docs, {} bytes)", versionId, docCount, artifactSize);
+        return version;
+    }
+
+    @Transactional
+    public IndexVersion markIndexVersionAsUploaded(UUID versionId, String artifactKey) {
+        IndexVersion version = getIndexVersion(versionId);
+        version.setStatus(IndexVersionStatus.UPLOADED);
+        version.setArtifactKey(artifactKey);
+        log.debug("Version {} status -> UPLOADED (artifact={})", versionId, artifactKey);
         return version;
     }
 
@@ -52,6 +59,10 @@ public class IndexBuildStateStore {
         IndexVersion version = getIndexVersion(versionId);
         version.setStatus(IndexVersionStatus.FAILED);
         version.setErrorMessage(errorMessage);
+        version.setDocCount(null);
+        version.setArtifactSize(null);
+        version.setChecksum(null);
+        version.setArtifactKey(null);
         log.debug("Version {} status -> FAILED ({})", versionId, errorMessage);
         return version;
     }

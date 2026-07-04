@@ -30,6 +30,7 @@ search:
       executor:
         core-pool-size: 1
         max-pool-size: 2
+        queue-capacity: 50
         thread-name-prefix: build-
     storage:
       endpoint: ${SEARCH_INDEX_STORAGE_ENDPOINT:http://localhost:9000}

@@ -34,6 +34,8 @@ public class IndexBuildProperties {
 
         private int maxPoolSize = 2;
 
+        private int queueCapacity = 50;
+
         private String threadNamePrefix = "build-";
 
         public int getCorePoolSize() {
@@ -50,6 +52,14 @@ public class IndexBuildProperties {
 
         public void setMaxPoolSize(int maxPoolSize) {
             this.maxPoolSize = maxPoolSize;
+        }
+
+        public int getQueueCapacity() {
+            return queueCapacity;
+        }
+
+        public void setQueueCapacity(int queueCapacity) {
+            this.queueCapacity = queueCapacity;
         }
 
         public String getThreadNamePrefix() {

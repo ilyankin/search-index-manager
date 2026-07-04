@@ -17,7 +17,7 @@ public class IndexBuildAsyncConfig {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(cfg.getCorePoolSize());
         executor.setMaxPoolSize(cfg.getMaxPoolSize());
-        executor.setQueueCapacity(0);
+        executor.setQueueCapacity(cfg.getQueueCapacity());
         executor.setThreadNamePrefix(cfg.getThreadNamePrefix());
         executor.setWaitForTasksToCompleteOnShutdown(false);
         executor.initialize();
