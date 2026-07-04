@@ -1,0 +1,9 @@
+services:
+  postgres:
+    image: 'postgres:16'
+    environment:
+      - 'POSTGRES_USER=searchindex'
+      - 'POSTGRES_PASSWORD=searchindex'
+      - 'POSTGRES_DB=searchindex'
+    ports:
+      - '5432:5432'

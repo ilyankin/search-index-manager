@@ -1,3 +1,20 @@
 spring:
   application:
     name: search-index-manager
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/searchindex
+    username: searchindex
+    password: searchindex
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+
+  flyway:
+    locations: classpath:db/migration
