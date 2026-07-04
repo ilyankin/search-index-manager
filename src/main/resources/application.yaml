@@ -22,3 +22,32 @@ spring:
     apiversion:
       use:
         path-segment: 1
+
+search:
+  index:
+    build:
+      workdir: ${SEARCH_INDEX_WORKDIR:./build-work}
+      executor:
+        core-pool-size: 1
+        max-pool-size: 2
+        thread-name-prefix: build-
+
+logging:
+  level:
+    root: INFO
+    com.izenkyt.searchindexmanager: INFO
+    org.springframework: INFO
+    org.hibernate.SQL: WARN
+    org.hibernate.orm.jdbc.bind: WARN
+    org.apache.lucene: WARN
+  file:
+    name: logs/search-index-manager.log
+  structured:
+    format:
+      file: ecs
+  logback:
+    rollingpolicy:
+      max-file-size: 10MB
+      max-history: 7
+      total-size-cap: 100MB
+      clean-history-on-start: true

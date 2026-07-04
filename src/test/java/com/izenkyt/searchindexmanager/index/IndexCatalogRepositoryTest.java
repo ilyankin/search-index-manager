@@ -78,8 +78,8 @@ class IndexCatalogRepositoryTest {
     void indexVersionIsPersistedAndOrderedByVersionDesc() {
         SearchIndex index = save("idx-versions");
 
-        indexVersionRepository.save(new IndexVersion(index, 1, IndexVersionStatus.CREATED));
-        indexVersionRepository.save(new IndexVersion(index, 2, IndexVersionStatus.BUILDING));
+        indexVersionRepository.save(new IndexVersion(index, 1, IndexVersionStatus.BUILT));
+        indexVersionRepository.save(new IndexVersion(index, 2, IndexVersionStatus.READY));
         indexVersionRepository.flush();
 
         List<IndexVersion> versions = indexVersionRepository.findAllByIndexIdOrderByVersionDesc(index.getId());
@@ -91,9 +91,9 @@ class IndexCatalogRepositoryTest {
     void findMaxVersionByIndexIdReturnsLatest() {
         SearchIndex index = save("idx-max");
 
-        indexVersionRepository.save(new IndexVersion(index, 1, IndexVersionStatus.CREATED));
-        indexVersionRepository.save(new IndexVersion(index, 3, IndexVersionStatus.BUILDING));
-        indexVersionRepository.save(new IndexVersion(index, 2, IndexVersionStatus.BUILT));
+        indexVersionRepository.save(new IndexVersion(index, 1, IndexVersionStatus.BUILT));
+        indexVersionRepository.save(new IndexVersion(index, 3, IndexVersionStatus.READY));
+        indexVersionRepository.save(new IndexVersion(index, 2, IndexVersionStatus.FAILED));
         indexVersionRepository.flush();
 
         Optional<Integer> max = indexVersionRepository.findMaxVersionByIndexId(index.getId());

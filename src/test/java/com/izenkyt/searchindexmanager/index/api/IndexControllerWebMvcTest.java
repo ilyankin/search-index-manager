@@ -37,8 +37,15 @@ class IndexControllerWebMvcTest {
     @MockitoBean
     private IndexCatalogService service;
 
-    private static final String VALID_BODY =
-            "{\"name\":\"idx\",\"description\":\"d\",\"fields\":[{\"name\":\"title\",\"type\":\"text\"}]}";
+    private static final String VALID_BODY = """
+            {
+              "name": "idx",
+              "description": "d",
+              "fields": [
+                {"name": "title", "type": "text"}
+              ]
+            }
+            """;
 
     private IndexResponse sampleResponse(UUID id) {
         return new IndexResponse(
@@ -71,7 +78,15 @@ class IndexControllerWebMvcTest {
 
     @Test
     void create_returns400_whenNameBlank() {
-        String body = "{\"name\":\"\",\"description\":\"d\",\"fields\":[{\"name\":\"title\",\"type\":\"text\"}]}";
+        String body = """
+                {
+                  "name": "",
+                  "description": "d",
+                  "fields": [
+                    {"name": "title", "type": "text"}
+                  ]
+                }
+                """;
 
         assertThat(mvc.post().uri("/api/v1/indexes")
                 .contentType(MediaType.APPLICATION_JSON).content(body))
@@ -81,7 +96,15 @@ class IndexControllerWebMvcTest {
 
     @Test
     void create_returns400_whenNameInvalidPattern() {
-        String body = "{\"name\":\"Bad Name\",\"description\":\"d\",\"fields\":[{\"name\":\"title\",\"type\":\"text\"}]}";
+        String body = """
+                {
+                  "name": "Bad Name",
+                  "description": "d",
+                  "fields": [
+                    {"name": "title", "type": "text"}
+                  ]
+                }
+                """;
 
         assertThat(mvc.post().uri("/api/v1/indexes")
                 .contentType(MediaType.APPLICATION_JSON).content(body))
@@ -93,7 +116,13 @@ class IndexControllerWebMvcTest {
 
     @Test
     void create_returns400_whenFieldsEmpty() {
-        String body = "{\"name\":\"idx\",\"description\":\"d\",\"fields\":[]}";
+        String body = """
+                {
+                  "name": "idx",
+                  "description": "d",
+                  "fields": []
+                }
+                """;
 
         assertThat(mvc.post().uri("/api/v1/indexes")
                 .contentType(MediaType.APPLICATION_JSON).content(body))
@@ -103,8 +132,16 @@ class IndexControllerWebMvcTest {
 
     @Test
     void create_returns400_whenFieldNamesDuplicated() {
-        String body = "{\"name\":\"idx\",\"description\":\"d\",\"fields\":["
-                + "{\"name\":\"title\",\"type\":\"text\"},{\"name\":\"title\",\"type\":\"long\"}]}";
+        String body = """
+                {
+                  "name": "idx",
+                  "description": "d",
+                  "fields": [
+                    {"name": "title", "type": "text"},
+                    {"name": "title", "type": "long"}
+                  ]
+                }
+                """;
 
         assertThat(mvc.post().uri("/api/v1/indexes")
                 .contentType(MediaType.APPLICATION_JSON).content(body))
@@ -114,7 +151,15 @@ class IndexControllerWebMvcTest {
 
     @Test
     void create_returns400_whenFieldTypeInvalid() {
-        String body = "{\"name\":\"idx\",\"description\":\"d\",\"fields\":[{\"name\":\"t\",\"type\":\"bogus\"}]}";
+        String body = """
+                {
+                  "name": "idx",
+                  "description": "d",
+                  "fields": [
+                    {"name": "t", "type": "bogus"}
+                  ]
+                }
+                """;
 
         assertThat(mvc.post().uri("/api/v1/indexes")
                 .contentType(MediaType.APPLICATION_JSON).content(body))

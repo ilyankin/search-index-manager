@@ -1,0 +1,8 @@
+spring:
+  application:
+    name: search-index-manager
+
+logging:
+  level:
+    com.izenkyt.searchindexmanager: DEBUG
+    org.springframework.web: DEBUG
