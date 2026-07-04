@@ -1,6 +1,7 @@
 package com.izenkyt.searchindexmanager.index.api;
 
 import com.izenkyt.searchindexmanager.index.IndexCatalogService;
+import com.izenkyt.searchindexmanager.index.api.dto.ArtifactDownloadResponse;
 import com.izenkyt.searchindexmanager.index.api.dto.CreateIndexRequest;
 import com.izenkyt.searchindexmanager.index.api.dto.IndexResponse;
 import com.izenkyt.searchindexmanager.index.api.dto.IndexVersionResponse;
@@ -58,5 +59,10 @@ public class IndexController {
     @GetMapping("/{id}/versions/{version}")
     public IndexVersionResponse getVersion(@PathVariable UUID id, @PathVariable int version) {
         return service.getVersion(id, version);
+    }
+
+    @GetMapping("/{id}/versions/{version}/artifact")
+    public ArtifactDownloadResponse getArtifact(@PathVariable UUID id, @PathVariable int version) {
+        return service.getArtifactDownloadUrl(id, version);
     }
 }

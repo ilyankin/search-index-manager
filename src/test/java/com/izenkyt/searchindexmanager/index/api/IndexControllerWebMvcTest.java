@@ -2,12 +2,15 @@ package com.izenkyt.searchindexmanager.index.api;
 
 import com.izenkyt.searchindexmanager.common.DuplicateNameException;
 import com.izenkyt.searchindexmanager.common.NotFoundException;
+import com.izenkyt.searchindexmanager.index.ArtifactNotAvailableException;
 import com.izenkyt.searchindexmanager.index.IndexCatalogService;
+import com.izenkyt.searchindexmanager.index.api.dto.ArtifactDownloadResponse;
 import com.izenkyt.searchindexmanager.index.api.dto.CreateIndexRequest;
 import com.izenkyt.searchindexmanager.index.api.dto.FieldDefinition;
 import com.izenkyt.searchindexmanager.index.api.dto.FieldType;
 import com.izenkyt.searchindexmanager.index.api.dto.IndexResponse;
 import com.izenkyt.searchindexmanager.index.api.dto.IndexVersionResponse;
+import com.izenkyt.searchindexmanager.storage.ArtifactStorageException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -276,5 +279,52 @@ class IndexControllerWebMvcTest {
         assertThat(mvc.get().uri("/api/v1/indexes/" + id + "/versions/1"))
                 .hasStatus(HttpStatus.NOT_FOUND)
                 .bodyJson().extractingPath("$.detail").asString().contains("Version 1");
+    }
+
+    @Test
+    void getArtifact_returns200WithUrlAndExpiresAt() {
+        UUID id = UUID.randomUUID();
+        given(service.getArtifactDownloadUrl(eq(id), eq(1)))
+                .willReturn(new ArtifactDownloadResponse(
+                        "http://localhost:9000/idx/1/index.tar.gz",
+                        Instant.parse("2026-07-04T09:15:00Z")));
+
+        assertThat(mvc.get().uri("/api/v1/indexes/" + id + "/versions/1/artifact"))
+                .hasStatusOk()
+                .bodyJson().extractingPath("$.url").asString().startsWith("http://localhost:9000");
+    }
+
+    @Test
+    void getArtifact_returns409_whenStatusNotUploaded() {
+        UUID id = UUID.randomUUID();
+        given(service.getArtifactDownloadUrl(eq(id), eq(1)))
+                .willThrow(new ArtifactNotAvailableException(
+                        "Artifact for version 1 of index " + id + " is not available (status=BUILDING)"));
+
+        assertThat(mvc.get().uri("/api/v1/indexes/" + id + "/versions/1/artifact"))
+                .hasStatus(HttpStatus.CONFLICT)
+                .bodyJson().extractingPath("$.detail").asString().contains("not available");
+    }
+
+    @Test
+    void getArtifact_returns404_whenVersionMissing() {
+        UUID id = UUID.randomUUID();
+        given(service.getArtifactDownloadUrl(eq(id), eq(1)))
+                .willThrow(new NotFoundException("Version 1 not found for index " + id));
+
+        assertThat(mvc.get().uri("/api/v1/indexes/" + id + "/versions/1/artifact"))
+                .hasStatus(HttpStatus.NOT_FOUND)
+                .bodyJson().extractingPath("$.detail").asString().contains("Version 1");
+    }
+
+    @Test
+    void getArtifact_returns503_whenStorageUnavailable() {
+        UUID id = UUID.randomUUID();
+        given(service.getArtifactDownloadUrl(eq(id), eq(1)))
+                .willThrow(new ArtifactStorageException("Failed to presign download URL for 'x': boom"));
+
+        assertThat(mvc.get().uri("/api/v1/indexes/" + id + "/versions/1/artifact"))
+                .hasStatus(HttpStatus.SERVICE_UNAVAILABLE)
+                .bodyJson().extractingPath("$.detail").asString().contains("temporarily unavailable");
     }
 }

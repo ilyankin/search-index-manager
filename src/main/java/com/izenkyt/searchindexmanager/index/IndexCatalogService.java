@@ -2,11 +2,13 @@ package com.izenkyt.searchindexmanager.index;
 
 import com.izenkyt.searchindexmanager.common.DuplicateNameException;
 import com.izenkyt.searchindexmanager.common.NotFoundException;
+import com.izenkyt.searchindexmanager.index.api.dto.ArtifactDownloadResponse;
 import com.izenkyt.searchindexmanager.index.api.dto.CreateIndexRequest;
 import com.izenkyt.searchindexmanager.index.api.dto.FieldDefinition;
 import com.izenkyt.searchindexmanager.index.api.dto.FieldType;
 import com.izenkyt.searchindexmanager.index.api.dto.IndexResponse;
 import com.izenkyt.searchindexmanager.index.api.dto.IndexVersionResponse;
+import com.izenkyt.searchindexmanager.storage.ArtifactStorage;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -22,11 +24,14 @@ public class IndexCatalogService {
 
     private final SearchIndexRepository searchIndexRepository;
     private final IndexVersionRepository indexVersionRepository;
+    private final ArtifactStorage artifactStorage;
 
     public IndexCatalogService(SearchIndexRepository searchIndexRepository,
-                               IndexVersionRepository indexVersionRepository) {
+                               IndexVersionRepository indexVersionRepository,
+                               ArtifactStorage artifactStorage) {
         this.searchIndexRepository = searchIndexRepository;
         this.indexVersionRepository = indexVersionRepository;
+        this.artifactStorage = artifactStorage;
     }
 
     @Transactional
@@ -70,6 +75,24 @@ public class IndexCatalogService {
                     throw new NotFoundException(
                             "Version " + version + " not found for index " + indexId);
                 });
+    }
+
+    @Transactional(readOnly = true)
+    public ArtifactDownloadResponse getArtifactDownloadUrl(UUID indexId, int version) {
+        IndexVersion indexVersion = indexVersionRepository.findByIndexIdAndVersion(indexId, version)
+                .orElseGet(() -> {
+                    requireIndexExists(indexId);
+                    throw new NotFoundException(
+                            "Version " + version + " not found for index " + indexId);
+                });
+        IndexVersionStatus status = indexVersion.getStatus();
+        if (!status.hasArtifact()) {
+            throw new ArtifactNotAvailableException(
+                    "Artifact for version " + version + " of index " + indexId
+                            + " is not available (status=" + status + ")");
+        }
+        ArtifactStorage.PresignedUrl presigned = artifactStorage.download(indexVersion.getArtifactKey());
+        return new ArtifactDownloadResponse(presigned.url(), presigned.expiresAt());
     }
 
     private SearchIndex requireIndex(UUID id) {

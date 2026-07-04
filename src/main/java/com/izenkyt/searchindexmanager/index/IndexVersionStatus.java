@@ -6,5 +6,9 @@ public enum IndexVersionStatus {
     BUILT,
     UPLOADED,
     READY,
-    FAILED
+    FAILED;
+
+    public boolean hasArtifact() {
+        return this == UPLOADED || this == READY;
+    }
 }

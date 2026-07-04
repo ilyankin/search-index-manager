@@ -21,7 +21,13 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.file.Path;
+import java.security.MessageDigest;
+import java.util.HexFormat;
 import java.util.Map;
 import java.util.UUID;
 
@@ -160,6 +166,45 @@ class IndexBuildPipelineIntegrationTest {
                 url("/indexes/" + UUID.randomUUID() + "/build"),
                 new HttpEntity<>("{\"title\":\"x\"}\n", headers), Map.class);
         assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void downloadedArtifactMatchesVersionMetadata() throws Exception {
+        UUID indexId = createIndex("build-download-" + UUID.randomUUID());
+        String ndjson =
+                "{\"title\":\"hello world\",\"tag\":\"java\",\"count\":42}\n"
+                        + "{\"title\":\"second doc\",\"tag\":\"python\",\"count\":7}\n";
+
+        ResponseEntity<Map> resp = postBuild(indexId, ndjson);
+        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.ACCEPTED);
+        int version = ((Number) resp.getBody().get("version")).intValue();
+
+        await().atMost(Duration.ofSeconds(30)).untilAsserted(() -> {
+            Map<String, Object> v = getVersion(indexId, version);
+            assertThat(v.get("status")).isEqualTo("UPLOADED");
+        });
+
+        Map<String, Object> v = getVersion(indexId, version);
+        long expectedSize = ((Number) v.get("artifactSize")).longValue();
+        String expectedChecksum = (String) v.get("checksum");
+
+        ResponseEntity<Map> art = restTemplate.getForEntity(
+                url("/indexes/" + indexId + "/versions/" + version + "/artifact"), Map.class);
+        assertThat(art.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(art.getBody()).isNotNull();
+        String presignedUrl = (String) art.getBody().get("url");
+        assertThat(art.getBody().get("expiresAt")).isNotNull();
+
+        HttpResponse<byte[]> dl = HttpClient.newHttpClient().send(
+                HttpRequest.newBuilder(URI.create(presignedUrl)).GET().build(),
+                HttpResponse.BodyHandlers.ofByteArray());
+        assertThat(dl.statusCode()).isEqualTo(200);
+        byte[] bytes = dl.body();
+        assertThat(bytes.length).isEqualTo(expectedSize);
+        MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
+        String actualChecksum = HexFormat.of().formatHex(sha256.digest(bytes));
+        assertThat(actualChecksum).isEqualTo(expectedChecksum);
     }
 
     private boolean objectExists(String key) {

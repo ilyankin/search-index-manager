@@ -12,8 +12,10 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.izenkyt.searchindexmanager.index.ArtifactNotAvailableException;
 import com.izenkyt.searchindexmanager.indexbuild.IndexBuildConflictException;
 import com.izenkyt.searchindexmanager.indexbuild.IndexBuildException;
+import com.izenkyt.searchindexmanager.storage.ArtifactStorageException;
 
 import java.net.URI;
 import java.util.LinkedHashMap;
@@ -43,10 +45,23 @@ public class ApiExceptionHandler {
         return problem(HttpStatus.CONFLICT, ex.getMessage(), "build-conflict", "Build conflict");
     }
 
+    @ExceptionHandler(ArtifactNotAvailableException.class)
+    public ProblemDetail handleArtifactNotAvailable(ArtifactNotAvailableException ex) {
+        log.debug("Artifact not available: {}", ex.getMessage());
+        return problem(HttpStatus.CONFLICT, ex.getMessage(), "artifact-not-available", "Artifact not available");
+    }
+
     @ExceptionHandler(IndexBuildException.class)
     public ProblemDetail handleIndexBuild(IndexBuildException ex) {
         log.error("Index build failed: {}", ex.getMessage(), ex);
         return problem(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage(), "build-error", "Index build error");
+    }
+
+    @ExceptionHandler(ArtifactStorageException.class)
+    public ProblemDetail handleArtifactStorage(ArtifactStorageException ex) {
+        log.warn("Artifact storage unavailable: {}", ex.getMessage(), ex);
+        return problem(HttpStatus.SERVICE_UNAVAILABLE, "Artifact storage is temporarily unavailable",
+                "artifact-storage-unavailable", "Artifact storage unavailable");
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
