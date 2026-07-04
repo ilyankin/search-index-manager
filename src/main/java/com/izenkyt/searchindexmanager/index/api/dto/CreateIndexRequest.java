@@ -8,6 +8,7 @@ import jakarta.validation.constraints.Size;
 
 import java.util.List;
 
+@UniqueFieldNames
 public record CreateIndexRequest(
         @NotBlank
         @Size(max = 64)
