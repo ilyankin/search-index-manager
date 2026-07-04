@@ -31,6 +31,12 @@ search:
         core-pool-size: 1
         max-pool-size: 2
         thread-name-prefix: build-
+    storage:
+      endpoint: ${SEARCH_INDEX_STORAGE_ENDPOINT:http://localhost:9000}
+      access-key: ${SEARCH_INDEX_STORAGE_ACCESS_KEY:minioadmin}
+      secret-key: ${SEARCH_INDEX_STORAGE_SECRET_KEY:minioadmin}
+      bucket: ${SEARCH_INDEX_STORAGE_BUCKET:search-index-artifacts}
+      presign-ttl: ${SEARCH_INDEX_STORAGE_PRESIGN_TTL:15m}
 
 logging:
   level:

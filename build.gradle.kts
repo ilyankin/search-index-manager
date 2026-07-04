@@ -34,12 +34,15 @@ dependencies {
     implementation("org.apache.lucene:lucene-analysis-common:$luceneVersion")
     implementation("org.apache.commons:commons-compress:1.28.0")
 
+    implementation("io.minio:minio:8.5.17")
+
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
     testImplementation("org.springframework.boot:spring-boot-starter-restclient")
     testImplementation("org.springframework.boot:spring-boot-testcontainers")
     testImplementation(platform("org.testcontainers:testcontainers-bom:2.0.5"))
     testImplementation("org.testcontainers:testcontainers-postgresql")
+    testImplementation("org.testcontainers:testcontainers-minio")
     testImplementation("org.testcontainers:testcontainers-junit-jupiter")
     testImplementation("org.awaitility:awaitility:4.3.0")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
