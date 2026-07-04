@@ -6,6 +6,7 @@ import com.izenkyt.searchindexmanager.index.api.dto.CreateIndexRequest;
 import com.izenkyt.searchindexmanager.index.api.dto.FieldDefinition;
 import com.izenkyt.searchindexmanager.index.api.dto.FieldType;
 import com.izenkyt.searchindexmanager.index.api.dto.IndexResponse;
+import com.izenkyt.searchindexmanager.index.api.dto.IndexVersionResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -52,9 +53,34 @@ public class IndexCatalogService {
         return searchIndexRepository.findAll(pageable).map(this::toResponse);
     }
 
+    @Transactional(readOnly = true)
+    public List<IndexVersionResponse> listVersions(UUID indexId) {
+        requireIndexExists(indexId);
+        return indexVersionRepository.findAllByIndexIdOrderByVersionDesc(indexId).stream()
+                .map(this::toVersionResponse)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public IndexVersionResponse getVersion(UUID indexId, int version) {
+        return indexVersionRepository.findByIndexIdAndVersion(indexId, version)
+                .map(this::toVersionResponse)
+                .orElseGet(() -> {
+                    requireIndexExists(indexId);
+                    throw new NotFoundException(
+                            "Version " + version + " not found for index " + indexId);
+                });
+    }
+
     private SearchIndex requireIndex(UUID id) {
         return searchIndexRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Index " + id + " not found"));
+    }
+
+    private void requireIndexExists(UUID id) {
+        if (!searchIndexRepository.existsById(id)) {
+            throw new NotFoundException("Index " + id + " not found");
+        }
     }
 
     private IndexResponse toResponse(SearchIndex index) {
@@ -65,6 +91,21 @@ public class IndexCatalogService {
                 toFieldDefinitions(index.getFields()),
                 index.getCreatedAt(),
                 index.getUpdatedAt()
+        );
+    }
+
+    private IndexVersionResponse toVersionResponse(IndexVersion version) {
+        return new IndexVersionResponse(
+                version.getId(),
+                version.getVersion(),
+                version.getStatus().name(),
+                version.getDocCount(),
+                version.getArtifactKey(),
+                version.getArtifactSize(),
+                version.getChecksum(),
+                version.getErrorMessage(),
+                version.getCreatedAt(),
+                version.getUpdatedAt()
         );
     }
 

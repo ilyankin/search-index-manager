@@ -3,6 +3,7 @@ package com.izenkyt.searchindexmanager.index.api;
 import com.izenkyt.searchindexmanager.index.IndexCatalogService;
 import com.izenkyt.searchindexmanager.index.api.dto.CreateIndexRequest;
 import com.izenkyt.searchindexmanager.index.api.dto.IndexResponse;
+import com.izenkyt.searchindexmanager.index.api.dto.IndexVersionResponse;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -46,5 +48,15 @@ public class IndexController {
     @GetMapping("/{id}")
     public IndexResponse get(@PathVariable UUID id) {
         return service.getById(id);
+    }
+
+    @GetMapping("/{id}/versions")
+    public List<IndexVersionResponse> listVersions(@PathVariable UUID id) {
+        return service.listVersions(id);
+    }
+
+    @GetMapping("/{id}/versions/{version}")
+    public IndexVersionResponse getVersion(@PathVariable UUID id, @PathVariable int version) {
+        return service.getVersion(id, version);
     }
 }

@@ -11,6 +11,8 @@ public interface IndexVersionRepository extends JpaRepository<IndexVersion, UUID
 
     List<IndexVersion> findAllByIndexIdOrderByVersionDesc(UUID indexId);
 
+    Optional<IndexVersion> findByIndexIdAndVersion(UUID indexId, int version);
+
     @Query("select max(v.version) from IndexVersion v where v.index.id = :indexId")
     Optional<Integer> findMaxVersionByIndexId(UUID indexId);
 }
