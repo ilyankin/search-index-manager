@@ -1,16 +1,20 @@
 package com.izenkyt.searchindexmanager.index;
 
 import com.izenkyt.searchindexmanager.common.DuplicateNameException;
+import com.izenkyt.searchindexmanager.common.NotFoundException;
 import com.izenkyt.searchindexmanager.index.api.dto.CreateIndexRequest;
 import com.izenkyt.searchindexmanager.index.api.dto.FieldDefinition;
 import com.izenkyt.searchindexmanager.index.api.dto.FieldType;
 import com.izenkyt.searchindexmanager.index.api.dto.IndexResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 public class IndexCatalogService {
@@ -36,6 +40,21 @@ public class IndexCatalogService {
         );
         SearchIndex saved = searchIndexRepository.save(index);
         return toResponse(saved);
+    }
+
+    @Transactional(readOnly = true)
+    public IndexResponse getById(UUID id) {
+        return toResponse(requireIndex(id));
+    }
+
+    @Transactional(readOnly = true)
+    public Page<IndexResponse> list(Pageable pageable) {
+        return searchIndexRepository.findAll(pageable).map(this::toResponse);
+    }
+
+    private SearchIndex requireIndex(UUID id) {
+        return searchIndexRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Index " + id + " not found"));
     }
 
     private IndexResponse toResponse(SearchIndex index) {
