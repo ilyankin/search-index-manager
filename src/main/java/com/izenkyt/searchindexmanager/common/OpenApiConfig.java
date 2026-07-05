@@ -13,7 +13,8 @@ public class OpenApiConfig {
         return new OpenAPI()
                 .info(new Info()
                         .title("Search Index Manager")
-                        .description("Builds and versions Lucene search indexes, storing artifacts in MinIO.")
+                        .description("Строит и версионирует Lucene-индексы из загруженных документов, "
+                                + "хранит артефакты сборки в MinIO.")
                         .version("v1"));
     }
 }
