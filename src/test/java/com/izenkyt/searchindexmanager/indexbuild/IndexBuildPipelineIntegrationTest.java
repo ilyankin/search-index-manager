@@ -58,7 +58,7 @@ class IndexBuildPipelineIntegrationTest {
 
     @DynamicPropertySource
     static void registerWorkdir(DynamicPropertyRegistry registry) {
-        registry.add("search.index.build.workdir", () -> workdir.toAbsolutePath().toString());
+        IndexBuildTestSupport.registerWorkdir(registry, workdir);
     }
 
     private String url(String path) {
@@ -77,7 +77,6 @@ class IndexBuildPipelineIntegrationTest {
         return IndexBuildTestSupport.getVersion(restTemplate, port, indexId, version);
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     void postBuild_resultsInUploadedVersionWithS3Artifact() throws Exception {
         UUID indexId = createIndex("build-ok-" + UUID.randomUUID());
@@ -94,7 +93,7 @@ class IndexBuildPipelineIntegrationTest {
 
         await().atMost(Duration.ofSeconds(30)).untilAsserted(() -> {
             Map<String, Object> v = getVersion(indexId, version);
-            assertThat(v.get("status")).isEqualTo("UPLOADED");
+            assertThat(v.get("status")).isEqualTo("READY");
         });
 
         Map<String, Object> v = getVersion(indexId, version);
@@ -102,13 +101,12 @@ class IndexBuildPipelineIntegrationTest {
         assertThat(((Number) v.get("artifactSize")).longValue()).isPositive();
         assertThat((String) v.get("checksum")).hasSize(64).matches("[0-9a-f]{64}");
         String artifactKey = (String) v.get("artifactKey");
-        assertThat(artifactKey).isEqualTo(indexId + "/" + version + "/index.tar.gz");
+        assertThat(artifactKey).isEqualTo(IndexBuildTestSupport.artifactKey(indexId, version));
         assertThat(objectExists(artifactKey)).isTrue();
         assertThat(objectSize(artifactKey))
                 .isEqualTo(((Number) v.get("artifactSize")).longValue());
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     void postBuild_withBadNdjson_resultsInFailedWithErrorMessage() {
         UUID indexId = createIndex("build-fail-" + UUID.randomUUID());
@@ -132,7 +130,6 @@ class IndexBuildPipelineIntegrationTest {
         assertThat(v.get("checksum")).isNull();
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     void secondBuildWhileActiveReturns409() {
         UUID indexId = createIndex("build-conflict-" + UUID.randomUUID());
@@ -149,15 +146,15 @@ class IndexBuildPipelineIntegrationTest {
 
         await().atMost(Duration.ofSeconds(30)).untilAsserted(() -> {
             Map<String, Object> v = getVersion(indexId, version);
-            assertThat(v.get("status")).isIn("CREATED", "BUILDING", "BUILT", "UPLOADED");
+            assertThat(v.get("status")).isIn("CREATED", "BUILDING", "BUILT", "UPLOADED", "READY");
         });
+        
         await().atMost(Duration.ofSeconds(30)).untilAsserted(() -> {
             Map<String, Object> v = getVersion(indexId, version);
-            assertThat(v.get("status")).isEqualTo("UPLOADED");
+            assertThat(v.get("status")).isEqualTo("READY");
         });
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     void postBuild_returns404_whenIndexMissing() {
         HttpHeaders headers = new HttpHeaders();
@@ -168,7 +165,6 @@ class IndexBuildPipelineIntegrationTest {
         assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     void downloadedArtifactMatchesVersionMetadata() throws Exception {
         UUID indexId = createIndex("build-download-" + UUID.randomUUID());
@@ -182,7 +178,7 @@ class IndexBuildPipelineIntegrationTest {
 
         await().atMost(Duration.ofSeconds(30)).untilAsserted(() -> {
             Map<String, Object> v = getVersion(indexId, version);
-            assertThat(v.get("status")).isEqualTo("UPLOADED");
+            assertThat(v.get("status")).isEqualTo("READY");
         });
 
         Map<String, Object> v = getVersion(indexId, version);

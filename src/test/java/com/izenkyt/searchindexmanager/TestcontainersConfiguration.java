@@ -5,13 +5,17 @@ import org.springframework.boot.testcontainers.service.connection.ServiceConnect
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.DynamicPropertyRegistrar;
 import org.testcontainers.containers.MinIOContainer;
+import org.testcontainers.kafka.KafkaContainer;
 import org.testcontainers.postgresql.PostgreSQLContainer;
+
+import java.util.UUID;
 
 
 @TestConfiguration(proxyBeanMethods = false)
 public class TestcontainersConfiguration {
 
     public static final String MINIO_IMAGE = "minio/minio:RELEASE.2024-08-17T01-24-54Z";
+    public static final String KAFKA_IMAGE = "apache/kafka:4.3.1";
 
     @Bean
     @ServiceConnection
@@ -28,6 +32,12 @@ public class TestcontainersConfiguration {
     }
 
     @Bean
+    @ServiceConnection
+    KafkaContainer kafkaContainer() {
+        return new KafkaContainer(KAFKA_IMAGE);
+    }
+
+    @Bean
     DynamicPropertyRegistrar minioPropertiesRegistrar(MinIOContainer minioContainer) {
         return registry -> {
             registry.add("search.index.storage.endpoint", minioContainer::getS3URL);
@@ -35,5 +45,11 @@ public class TestcontainersConfiguration {
             registry.add("search.index.storage.access-key", minioContainer::getUserName);
             registry.add("search.index.storage.secret-key", minioContainer::getPassword);
         };
+    }
+
+    @Bean
+    DynamicPropertyRegistrar kafkaConsumerGroupRegistrar() {
+        String groupId = "test-consumer-" + UUID.randomUUID();
+        return registry -> registry.add("spring.kafka.consumer.group-id", () -> groupId);
     }
 }

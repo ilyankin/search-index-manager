@@ -1,5 +1,8 @@
 package com.izenkyt.searchindexmanager.indexbuild;
 
+import com.izenkyt.searchindexmanager.event.EventPublishAmbiguousException;
+import com.izenkyt.searchindexmanager.event.IndexVersionEventPublisher;
+import com.izenkyt.searchindexmanager.event.IndexVersionUploadedEvent;
 import com.izenkyt.searchindexmanager.index.IndexVersion;
 import com.izenkyt.searchindexmanager.index.SearchIndex;
 import com.izenkyt.searchindexmanager.storage.ArtifactStorage;
@@ -12,6 +15,7 @@ import org.springframework.util.FileSystemUtils;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.UUID;
 
 @Component
@@ -23,17 +27,20 @@ public class IndexBuildPipeline {
     private final LuceneIndexBuilder indexBuilder;
     private final ArtifactPackager packager;
     private final ArtifactStorage storage;
+    private final IndexVersionEventPublisher eventPublisher;
     private final IndexBuildProperties properties;
 
     public IndexBuildPipeline(IndexBuildStateStore stateStore,
                               LuceneIndexBuilder indexBuilder,
                               ArtifactPackager packager,
                               ArtifactStorage storage,
+                              IndexVersionEventPublisher eventPublisher,
                               IndexBuildProperties properties) {
         this.stateStore = stateStore;
         this.indexBuilder = indexBuilder;
         this.packager = packager;
         this.storage = storage;
+        this.eventPublisher = eventPublisher;
         this.properties = properties;
     }
 
@@ -70,8 +77,20 @@ public class IndexBuildPipeline {
 
             String artifactKey = indexId + "/" + version.getVersion() + "/index.tar.gz";
             storage.upload(artifactKey, artifact.path());
+            deleteQuietly(versionDir);
             try {
                 stateStore.markIndexVersionAsUploaded(versionId, artifactKey);
+
+                IndexVersionUploadedEvent event = new IndexVersionUploadedEvent(
+                        versionId, indexId, version.getVersion(), artifactKey,
+                        artifact.size(), artifact.checksum(), Instant.now());
+                eventPublisher.publish(event);
+            } catch (EventPublishAmbiguousException e) {
+                // Результат публикации неоднозначен: событие могло быть успешно записано и уже
+                // обработано продьюсером. Отлавливаем, чтобы оставить статус UPLOADED и
+                // не пометить, как FAILED
+                log.warn("Ambiguous publish outcome for version {}, leaving status as UPLOADED: {}",
+                        versionId, e.getMessage());
             } catch (RuntimeException e) {
                 deleteOrphanedArtifact(artifactKey);
                 throw e;

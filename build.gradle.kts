@@ -36,6 +36,8 @@ dependencies {
 
     implementation("io.minio:minio:8.5.17")
 
+    implementation("org.springframework.boot:spring-boot-starter-kafka")
+
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
     testImplementation("org.springframework.boot:spring-boot-starter-restclient")
@@ -43,7 +45,9 @@ dependencies {
     testImplementation(platform("org.testcontainers:testcontainers-bom:2.0.5"))
     testImplementation("org.testcontainers:testcontainers-postgresql")
     testImplementation("org.testcontainers:testcontainers-minio")
+    testImplementation("org.testcontainers:testcontainers-kafka")
     testImplementation("org.testcontainers:testcontainers-junit-jupiter")
+    testImplementation("org.springframework.kafka:spring-kafka-test")
     testImplementation("org.awaitility:awaitility:4.3.0")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }

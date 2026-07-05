@@ -47,7 +47,7 @@ class IndexBuildPipelineUploadFailureIntegrationTest {
 
     @DynamicPropertySource
     static void registerWorkdir(DynamicPropertyRegistry registry) {
-        registry.add("search.index.build.workdir", () -> workdir.toAbsolutePath().toString());
+        IndexBuildTestSupport.registerWorkdir(registry, workdir);
     }
 
     @BeforeEach
@@ -72,7 +72,6 @@ class IndexBuildPipelineUploadFailureIntegrationTest {
         return IndexBuildTestSupport.getVersion(restTemplate, port, indexId, version);
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     void uploadFailure_marksVersionFailedWithErrorMessage() {
         UUID indexId = createIndex("build-upload-fail-" + UUID.randomUUID());

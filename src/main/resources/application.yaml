@@ -23,6 +23,24 @@ spring:
       use:
         path-segment: 1
 
+  kafka:
+    bootstrap-servers: ${SEARCH_INDEX_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      acks: all
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JacksonJsonSerializer
+      properties:
+        spring.json.add.type.headers: false
+    consumer:
+      group-id: search-index-manager
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      properties:
+        spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JacksonJsonDeserializer
+        spring.json.value.default.type: com.izenkyt.searchindexmanager.event.IndexVersionUploadedEvent
+        spring.json.trusted.packages: com.izenkyt.searchindexmanager.event
+
 search:
   index:
     build:
@@ -39,6 +57,9 @@ search:
       secret-key: ${SEARCH_INDEX_STORAGE_SECRET_KEY:minioadmin}
       bucket: ${SEARCH_INDEX_STORAGE_BUCKET:search-index-artifacts}
       presign-ttl: ${SEARCH_INDEX_STORAGE_PRESIGN_TTL:15m}
+    events:
+      topic: ${SEARCH_INDEX_EVENTS_TOPIC:index-version-uploaded}
+      send-timeout: ${SEARCH_INDEX_EVENTS_SEND_TIMEOUT:10s}
 
 logging:
   level:

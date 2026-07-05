@@ -55,8 +55,30 @@ public class IndexBuildStateStore {
     }
 
     @Transactional
+    public void markIndexVersionAsReady(UUID versionId) {
+        IndexVersion version = getIndexVersion(versionId);
+        IndexVersionStatus current = version.getStatus();
+        if (current == IndexVersionStatus.READY) {
+            log.debug("Version {} already READY, skipping duplicate event", versionId);
+            return;
+        }
+        if (current != IndexVersionStatus.UPLOADED) {
+            log.warn("Version {} is {} (expected UPLOADED), skipping stale ready event", versionId, current);
+            return;
+        }
+        version.setStatus(IndexVersionStatus.READY);
+        log.info("Version {} status -> READY", versionId);
+    }
+
+    @Transactional
     public IndexVersion markIndexVersionAsFailed(UUID versionId, String errorMessage) {
         IndexVersion version = getIndexVersion(versionId);
+        if (version.getStatus() == IndexVersionStatus.READY) {
+            // GUARD: Kafka consumer уже мог перевести версию в READY.
+            // А READY уже конечное успешное состояние, поэтому игнорируем.
+            log.warn("Version {} is already READY, ignoring stale failure: {}", versionId, errorMessage);
+            return version;
+        }
         version.setStatus(IndexVersionStatus.FAILED);
         version.setErrorMessage(errorMessage);
         version.setDocCount(null);
