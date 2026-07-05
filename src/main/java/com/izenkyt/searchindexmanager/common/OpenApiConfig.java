@@ -1,0 +1,19 @@
+package com.izenkyt.searchindexmanager.common;
+
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Info;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class OpenApiConfig {
+
+    @Bean
+    public OpenAPI searchIndexManagerOpenApi() {
+        return new OpenAPI()
+                .info(new Info()
+                        .title("Search Index Manager")
+                        .description("Builds and versions Lucene search indexes, storing artifacts in MinIO.")
+                        .version("v1"));
+    }
+}

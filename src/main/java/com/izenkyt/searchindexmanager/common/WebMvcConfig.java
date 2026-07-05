@@ -11,6 +11,8 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
     @Override
     public void configurePathMatch(PathMatchConfigurer configurer) {
-        configurer.addPathPrefix("/api/{apiVersion}", HandlerTypePredicate.forAnnotation(RestController.class));
+        configurer.addPathPrefix("/api/{apiVersion}",
+                HandlerTypePredicate.forAnnotation(RestController.class)
+                        .and(HandlerTypePredicate.forBasePackage("org.springdoc").negate()));
     }
 }

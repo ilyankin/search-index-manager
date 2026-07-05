@@ -38,6 +38,8 @@ dependencies {
 
     implementation("org.springframework.boot:spring-boot-starter-kafka")
 
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.3")
+
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
     testImplementation("org.springframework.boot:spring-boot-starter-restclient")
