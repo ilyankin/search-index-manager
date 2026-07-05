@@ -68,6 +68,16 @@ search:
       topic: ${SEARCH_INDEX_EVENTS_TOPIC:index-version-uploaded}
       send-timeout: ${SEARCH_INDEX_EVENTS_SEND_TIMEOUT:10s}
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
 logging:
   level:
     root: INFO
