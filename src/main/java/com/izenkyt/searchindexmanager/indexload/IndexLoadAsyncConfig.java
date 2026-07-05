@@ -29,7 +29,8 @@ public class IndexLoadAsyncConfig {
         executor.setMaxPoolSize(cfg.getMaxPoolSize());
         executor.setQueueCapacity(cfg.getQueueCapacity());
         executor.setThreadNamePrefix(cfg.getThreadNamePrefix());
-        executor.setWaitForTasksToCompleteOnShutdown(false);
+        executor.setWaitForTasksToCompleteOnShutdown(true);
+        executor.setAwaitTerminationMillis(cfg.getAwaitTermination().toMillis());
         executor.initialize();
         return executor;
     }

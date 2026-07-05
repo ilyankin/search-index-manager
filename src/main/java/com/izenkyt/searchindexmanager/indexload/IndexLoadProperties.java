@@ -3,6 +3,7 @@ package com.izenkyt.searchindexmanager.indexload;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.UUID;
 
 @ConfigurationProperties(prefix = "search.index.load")
@@ -38,6 +39,8 @@ public class IndexLoadProperties {
 
         private String threadNamePrefix = "load-";
 
+        private Duration awaitTermination = Duration.ofSeconds(25);
+
         public int getCorePoolSize() {
             return corePoolSize;
         }
@@ -68,6 +71,14 @@ public class IndexLoadProperties {
 
         public void setThreadNamePrefix(String threadNamePrefix) {
             this.threadNamePrefix = threadNamePrefix;
+        }
+
+        public Duration getAwaitTermination() {
+            return awaitTermination;
+        }
+
+        public void setAwaitTermination(Duration awaitTermination) {
+            this.awaitTermination = awaitTermination;
         }
     }
 }
