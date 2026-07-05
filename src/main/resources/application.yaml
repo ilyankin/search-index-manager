@@ -12,6 +12,14 @@ spring:
     url: jdbc:postgresql://localhost:5432/searchindex
     username: searchindex
     password: searchindex
+    hikari:
+      pool-name: search-index-manager-pool
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 10000
+      idle-timeout: 300000
+      max-lifetime: 1800000
+      leak-detection-threshold: 30000
 
   jpa:
     hibernate:
