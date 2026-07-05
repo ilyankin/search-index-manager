@@ -7,6 +7,12 @@ services:
       - 'POSTGRES_DB=searchindex'
     ports:
       - '5432:5432'
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U searchindex -d searchindex']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   minio:
     image: 'minio/minio:RELEASE.2024-08-17T01-24-54Z'
@@ -44,3 +50,31 @@ services:
       timeout: 5s
       retries: 5
       start_period: 15s
+
+  app:
+    build:
+      context: .
+    ports:
+      - '8080:8080'
+    environment:
+      - 'SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/searchindex'
+      - 'SPRING_DATASOURCE_USERNAME=searchindex'
+      - 'SPRING_DATASOURCE_PASSWORD=searchindex'
+      - 'SEARCH_INDEX_STORAGE_ENDPOINT=http://minio:9000'
+      - 'SEARCH_INDEX_STORAGE_PUBLIC_ENDPOINT=http://localhost:9000'
+      - 'SEARCH_INDEX_STORAGE_ACCESS_KEY=minioadmin'
+      - 'SEARCH_INDEX_STORAGE_SECRET_KEY=minioadmin'
+      - 'SEARCH_INDEX_KAFKA_BOOTSTRAP_SERVERS=kafka:29092'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD-SHELL', 'bash -c "</dev/tcp/localhost/8080"']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
