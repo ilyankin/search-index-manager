@@ -56,6 +56,13 @@ Testcontainers.
 
 ## Запуск через Docker Compose
 
+Креды PostgreSQL/MinIO не хранятся в `docker-compose.yaml` — только в `.env`
+(в `.gitignore`, не коммитится). Перед первым запуском:
+
+```bash
+cp .env.example .env
+```
+
 ```bash
 docker compose up --build
 ```

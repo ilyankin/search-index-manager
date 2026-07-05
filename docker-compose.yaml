@@ -2,13 +2,13 @@ services:
   postgres:
     image: 'postgres:16'
     environment:
-      - 'POSTGRES_USER=searchindex'
-      - 'POSTGRES_PASSWORD=searchindex'
-      - 'POSTGRES_DB=searchindex'
+      - 'POSTGRES_USER=${POSTGRES_USER}'
+      - 'POSTGRES_PASSWORD=${POSTGRES_PASSWORD}'
+      - 'POSTGRES_DB=${POSTGRES_DB}'
     ports:
       - '5432:5432'
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U searchindex -d searchindex']
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -18,8 +18,8 @@ services:
     image: 'chainguard/minio:latest'
     command: 'server --console-address ":9001" /data'
     environment:
-      - 'MINIO_ROOT_USER=minioadmin'
-      - 'MINIO_ROOT_PASSWORD=minioadmin'
+      - 'MINIO_ROOT_USER=${MINIO_ROOT_USER}'
+      - 'MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}'
     ports:
       - '9000:9000'
       - '9001:9001'
@@ -68,13 +68,13 @@ services:
     ports:
       - '8080:8080'
     environment:
-      - 'SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/searchindex'
-      - 'SPRING_DATASOURCE_USERNAME=searchindex'
-      - 'SPRING_DATASOURCE_PASSWORD=searchindex'
+      - 'SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/${POSTGRES_DB}'
+      - 'SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}'
+      - 'SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}'
       - 'SEARCH_INDEX_STORAGE_ENDPOINT=http://minio:9000'
       - 'SEARCH_INDEX_STORAGE_PUBLIC_ENDPOINT=http://localhost:9000'
-      - 'SEARCH_INDEX_STORAGE_ACCESS_KEY=minioadmin'
-      - 'SEARCH_INDEX_STORAGE_SECRET_KEY=minioadmin'
+      - 'SEARCH_INDEX_STORAGE_ACCESS_KEY=${MINIO_ROOT_USER}'
+      - 'SEARCH_INDEX_STORAGE_SECRET_KEY=${MINIO_ROOT_PASSWORD}'
       - 'SEARCH_INDEX_KAFKA_BOOTSTRAP_SERVERS=kafka:29092'
     depends_on:
       postgres:
