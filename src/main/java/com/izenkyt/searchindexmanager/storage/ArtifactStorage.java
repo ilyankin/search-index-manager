@@ -1,10 +1,6 @@
 package com.izenkyt.searchindexmanager.storage;
 
-import io.minio.GetPresignedObjectUrlArgs;
-import io.minio.MinioClient;
-import io.minio.PutObjectArgs;
-import io.minio.RemoveObjectArgs;
-import io.minio.http.Method;
+import io.minio.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -55,7 +51,7 @@ public class ArtifactStorage {
             client.putObject(PutObjectArgs.builder()
                     .bucket(properties.getBucket())
                     .object(key)
-                    .stream(in, size, -1)
+                    .stream(in, size, -1L)
                     .contentType(CONTENT_TYPE)
                     .build());
         } catch (Exception e) {
@@ -81,7 +77,7 @@ public class ArtifactStorage {
         log.debug("Presigning download URL for {} (ttl={})", key, properties.getPresignTtl());
         try {
             String url = presignClient.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder()
-                    .method(Method.GET)
+                    .method(Http.Method.GET)
                     .bucket(properties.getBucket())
                     .object(key)
                     .expiry((int) properties.getPresignTtl().toSeconds(), TimeUnit.SECONDS)

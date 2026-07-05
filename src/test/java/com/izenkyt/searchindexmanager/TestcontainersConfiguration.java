@@ -14,7 +14,7 @@ import java.util.UUID;
 @TestConfiguration(proxyBeanMethods = false)
 public class TestcontainersConfiguration {
 
-    public static final String MINIO_IMAGE = "minio/minio:RELEASE.2024-08-17T01-24-54Z";
+    public static final String MINIO_IMAGE = "chainguard/minio:latest";
     public static final String KAFKA_IMAGE = "apache/kafka:4.3.1";
 
     @Bean

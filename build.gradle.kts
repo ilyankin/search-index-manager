@@ -34,7 +34,7 @@ dependencies {
     implementation("org.apache.lucene:lucene-analysis-common:$luceneVersion")
     implementation("org.apache.commons:commons-compress:1.28.0")
 
-    implementation("io.minio:minio:8.5.17")
+    implementation("io.minio:minio:9.0.3")
 
     implementation("org.springframework.boot:spring-boot-starter-kafka")
 
