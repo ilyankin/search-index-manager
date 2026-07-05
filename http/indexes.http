@@ -1,0 +1,62 @@
+### @name createIndex
+POST {{host}}/api/v1/indexes
+Content-Type: application/json
+
+{
+  "name": "new-products",
+  "description": "Demo index for manual end-to-end verification",
+  "fields": [
+    { "name": "title", "type": "text" },
+    { "name": "sku", "type": "keyword" },
+    { "name": "price", "type": "double" },
+    { "name": "quantity", "type": "long" },
+    { "name": "in_stock", "type": "boolean" }
+  ]
+}
+
+> {%
+  if (response.status === 201) {
+    client.global.set("indexId", response.body.id);
+  }
+%}
+
+###
+
+### @name listIndexes
+GET {{host}}/api/v1/indexes?page=0&size=20
+
+###
+
+### @name getIndex
+GET {{host}}/api/v1/indexes/{{indexId}}
+
+###
+
+### @name buildIndex
+POST {{host}}/api/v1/indexes/{{indexId}}/build
+Content-Type: application/x-ndjson
+
+{"title": "Wireless Mouse", "sku": "SKU-001", "price": 19.99, "quantity": 120, "in_stock": true}
+{"title": "Mechanical Keyboard", "sku": "SKU-002", "price": 89.5, "quantity": 45, "in_stock": true}
+{"title": "USB-C Cable", "sku": "SKU-003", "price": 9.99, "quantity": 0, "in_stock": false}
+
+> {%
+  if (response.status === 202) {
+    client.global.set("indexVersion", response.body.version);
+  }
+%}
+
+###
+
+### @name listVersions
+GET {{host}}/api/v1/indexes/{{indexId}}/versions
+
+###
+
+### @name getVersion (пока не станет READY)
+GET {{host}}/api/v1/indexes/{{indexId}}/versions/{{indexVersion}}
+
+###
+
+### @name getArtifact
+GET {{host}}/api/v1/indexes/{{indexId}}/versions/{{indexVersion}}/artifact
