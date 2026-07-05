@@ -7,6 +7,7 @@ import org.springframework.test.context.DynamicPropertyRegistrar;
 import org.testcontainers.containers.MinIOContainer;
 import org.testcontainers.kafka.KafkaContainer;
 import org.testcontainers.postgresql.PostgreSQLContainer;
+import org.testcontainers.utility.DockerImageName;
 
 import java.util.UUID;
 
@@ -16,6 +17,10 @@ public class TestcontainersConfiguration {
 
     public static final String MINIO_IMAGE = "chainguard/minio:latest";
     public static final String KAFKA_IMAGE = "apache/kafka:4.3.1";
+
+    public static DockerImageName minioImage() {
+        return DockerImageName.parse(MINIO_IMAGE).asCompatibleSubstituteFor("minio/minio");
+    }
 
     @Bean
     @ServiceConnection
@@ -28,7 +33,7 @@ public class TestcontainersConfiguration {
 
     @Bean
     MinIOContainer minioContainer() {
-        return new MinIOContainer(MINIO_IMAGE);
+        return new MinIOContainer(minioImage());
     }
 
     @Bean

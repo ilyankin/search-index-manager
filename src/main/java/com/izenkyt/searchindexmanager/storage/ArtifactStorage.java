@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.TimeUnit;
@@ -73,7 +74,7 @@ public class ArtifactStorage {
         log.debug("Deleted artifact {}", key);
     }
 
-    public PresignedUrl download(String key) {
+    public PresignedUrl presignDownload(String key) {
         log.debug("Presigning download URL for {} (ttl={})", key, properties.getPresignTtl());
         try {
             String url = presignClient.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder()
@@ -89,6 +90,22 @@ public class ArtifactStorage {
         } catch (Exception e) {
             throw new ArtifactStorageException("Failed to presign download URL for '" + key + "': " + e.getMessage(), e);
         }
+    }
+
+    public void downloadTo(String key, Path target) {
+        log.debug("Downloading artifact {} to {}", key, target);
+        try {
+            Files.createDirectories(target.getParent());
+            try (InputStream in = client.getObject(GetObjectArgs.builder()
+                    .bucket(properties.getBucket())
+                    .object(key)
+                    .build())) {
+                Files.copy(in, target, StandardCopyOption.REPLACE_EXISTING);
+            }
+        } catch (Exception e) {
+            throw new ArtifactStorageException("Failed to download artifact '" + key + "': " + e.getMessage(), e);
+        }
+        log.debug("Downloaded artifact {} to {}", key, target);
     }
 
     public record PresignedUrl(String url, Instant expiresAt) {

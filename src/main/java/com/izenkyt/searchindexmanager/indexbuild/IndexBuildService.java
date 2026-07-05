@@ -12,6 +12,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -55,7 +57,16 @@ public class IndexBuildService {
             stateStore.markIndexVersionAsFailed(versionId, "Failed to read uploaded documents: " + e.getMessage());
             throw new IndexBuildException("Failed to read uploaded documents", e);
         }
-        pipeline.run(versionId, ndjsonFile);
+        // Запускаем pipeline.run() только после коммита: он асинхронный и читает версию в своей
+        // транзакции на отдельном потоке/соединении — если запустить его прямо здесь, до коммита
+        // текущей транзакции, под READ_COMMITTED он иногда не увидит ещё не закоммиченную строку
+        // версии (гонка, "Index version ... not found").
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                pipeline.run(versionId, ndjsonFile);
+            }
+        });
         return toVersionResponse(stateStore.getIndexVersion(versionId));
     }
 

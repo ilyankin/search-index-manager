@@ -60,3 +60,18 @@ GET {{host}}/api/v1/indexes/{{indexId}}/versions/{{indexVersion}}
 
 ### @name getArtifact
 GET {{host}}/api/v1/indexes/{{indexId}}/versions/{{indexVersion}}/artifact
+
+###
+
+### @name loadVersion (версия должна быть UPLOADED/READY)
+POST {{host}}/api/v1/indexes/{{indexId}}/versions/{{indexVersion}}/load
+
+###
+
+### @name listLoaded (пока не станет LOADED)
+GET {{host}}/api/v1/indexes/loaded
+
+###
+
+### @name unloadVersion
+DELETE {{host}}/api/v1/indexes/{{indexId}}/versions/{{indexVersion}}/load

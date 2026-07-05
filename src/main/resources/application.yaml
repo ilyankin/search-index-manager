@@ -50,6 +50,13 @@ search:
         max-pool-size: 2
         queue-capacity: 50
         thread-name-prefix: build-
+    load:
+      dir: ${SEARCH_INDEX_LOAD_DIR:./load-work}
+      executor:
+        core-pool-size: 1
+        max-pool-size: 2
+        queue-capacity: 50
+        thread-name-prefix: load-
     storage:
       endpoint: ${SEARCH_INDEX_STORAGE_ENDPOINT:http://localhost:9000}
       public-endpoint: ${SEARCH_INDEX_STORAGE_PUBLIC_ENDPOINT:http://localhost:9000}

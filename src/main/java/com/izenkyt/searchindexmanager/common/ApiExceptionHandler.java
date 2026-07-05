@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import com.izenkyt.searchindexmanager.index.ArtifactNotAvailableException;
 import com.izenkyt.searchindexmanager.indexbuild.IndexBuildConflictException;
 import com.izenkyt.searchindexmanager.indexbuild.IndexBuildException;
+import com.izenkyt.searchindexmanager.indexload.LoadInProgressException;
 import com.izenkyt.searchindexmanager.storage.ArtifactStorageException;
 
 import java.net.URI;
@@ -49,6 +50,12 @@ public class ApiExceptionHandler {
     public ProblemDetail handleArtifactNotAvailable(ArtifactNotAvailableException ex) {
         log.debug("Artifact not available: {}", ex.getMessage());
         return problem(HttpStatus.CONFLICT, ex.getMessage(), "artifact-not-available", "Artifact not available");
+    }
+
+    @ExceptionHandler(LoadInProgressException.class)
+    public ProblemDetail handleLoadInProgress(LoadInProgressException ex) {
+        log.debug("Load in progress: {}", ex.getMessage());
+        return problem(HttpStatus.CONFLICT, ex.getMessage(), "load-in-progress", "Load in progress");
     }
 
     @ExceptionHandler(IndexBuildException.class)

@@ -24,7 +24,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class ArtifactStorageIntegrationTest {
 
     @Container
-    private static final MinIOContainer minio = new MinIOContainer(TestcontainersConfiguration.MINIO_IMAGE);
+    private static final MinIOContainer minio = new MinIOContainer(TestcontainersConfiguration.minioImage());
 
     @TempDir
     Path tempDir;
@@ -60,7 +60,7 @@ class ArtifactStorageIntegrationTest {
         String key = "idx-1/1/index.tar.gz";
         storage.upload(key, file);
 
-        ArtifactStorage.PresignedUrl presigned = storage.download(key);
+        ArtifactStorage.PresignedUrl presigned = storage.presignDownload(key);
         assertThat(presigned.url()).startsWith("http");
         assertThat(presigned.expiresAt()).isAfter(java.time.Instant.now());
 
@@ -88,5 +88,36 @@ class ArtifactStorageIntegrationTest {
         assertThatThrownBy(() -> storage.upload("k", file))
                 .isInstanceOf(ArtifactStorageException.class)
                 .hasMessageContaining("Failed to upload artifact");
+    }
+
+    @Test
+    void downloadTo_writesObjectBytesToTargetFile() throws Exception {
+        ArtifactStorage storage = newStorage("artifacts-test-downloadto");
+        MinioClient admin = newClient(minio.getS3URL(), minio.getUserName(), minio.getPassword());
+        admin.makeBucket(MakeBucketArgs.builder().bucket("artifacts-test-downloadto").build());
+
+        Path file = tempDir.resolve("index.tar.gz");
+        byte[] payload = new byte[]{9, 8, 7, 6, 5, 4, 3, 2, 1, 0};
+        Files.write(file, payload);
+        String key = "idx-2/1/index.tar.gz";
+        storage.upload(key, file);
+
+        Path target = tempDir.resolve("downloaded.tar.gz");
+        storage.downloadTo(key, target);
+
+        assertThat(Files.readAllBytes(target)).isEqualTo(payload);
+    }
+
+    @Test
+    void downloadTo_withMissingKey_throwsArtifactStorageException() throws Exception {
+        ArtifactStorage storage = newStorage("artifacts-test-downloadto-missing");
+        MinioClient admin = newClient(minio.getS3URL(), minio.getUserName(), minio.getPassword());
+        admin.makeBucket(MakeBucketArgs.builder().bucket("artifacts-test-downloadto-missing").build());
+
+        Path target = tempDir.resolve("downloaded.tar.gz");
+
+        assertThatThrownBy(() -> storage.downloadTo("does/not/exist.tar.gz", target))
+                .isInstanceOf(ArtifactStorageException.class)
+                .hasMessageContaining("Failed to download artifact");
     }
 }

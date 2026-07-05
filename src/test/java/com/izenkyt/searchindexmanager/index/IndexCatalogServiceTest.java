@@ -189,7 +189,7 @@ class IndexCatalogServiceTest {
         v.setArtifactKey(id + "/1/index.tar.gz");
         given(indexVersionRepository.findByIndexIdAndVersion(id, 1)).willReturn(Optional.of(v));
         Instant expiresAt = Instant.parse("2026-07-04T09:15:00Z");
-        given(artifactStorage.download(id + "/1/index.tar.gz"))
+        given(artifactStorage.presignDownload(id + "/1/index.tar.gz"))
                 .willReturn(new ArtifactStorage.PresignedUrl("http://localhost:9000/idx/1/index.tar.gz", expiresAt));
 
         ArtifactDownloadResponse response = service.getArtifactDownloadUrl(id, 1);
@@ -205,12 +205,12 @@ class IndexCatalogServiceTest {
         IndexVersion v = new IndexVersion(index, 1, IndexVersionStatus.READY);
         v.setArtifactKey(id + "/1/index.tar.gz");
         given(indexVersionRepository.findByIndexIdAndVersion(id, 1)).willReturn(Optional.of(v));
-        given(artifactStorage.download(any(String.class)))
+        given(artifactStorage.presignDownload(any(String.class)))
                 .willReturn(new ArtifactStorage.PresignedUrl("http://x", Instant.now()));
 
         service.getArtifactDownloadUrl(id, 1);
 
-        verify(artifactStorage).download(id + "/1/index.tar.gz");
+        verify(artifactStorage).presignDownload(id + "/1/index.tar.gz");
     }
 
     @Test
@@ -223,7 +223,7 @@ class IndexCatalogServiceTest {
         assertThatThrownBy(() -> service.getArtifactDownloadUrl(id, 1))
                 .isInstanceOf(ArtifactNotAvailableException.class)
                 .hasMessageContaining("BUILDING");
-        verify(artifactStorage, never()).download(any(String.class));
+        verify(artifactStorage, never()).presignDownload(any(String.class));
     }
 
     @Test

@@ -91,7 +91,7 @@ public class IndexCatalogService {
                     "Artifact for version " + version + " of index " + indexId
                             + " is not available (status=" + status + ")");
         }
-        ArtifactStorage.PresignedUrl presigned = artifactStorage.download(indexVersion.getArtifactKey());
+        ArtifactStorage.PresignedUrl presigned = artifactStorage.presignDownload(indexVersion.getArtifactKey());
         return new ArtifactDownloadResponse(presigned.url(), presigned.expiresAt());
     }
 
