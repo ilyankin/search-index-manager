@@ -47,19 +47,15 @@ class IndexLoadPipelineIntegrationTest {
         if (!client.bucketExists(io.minio.BucketExistsArgs.builder().bucket(BUCKET).build())) {
             client.makeBucket(MakeBucketArgs.builder().bucket(BUCKET).build());
         }
-        MinioStorageProperties props = new MinioStorageProperties();
-        props.setEndpoint(minio.getS3URL());
-        props.setAccessKey(minio.getUserName());
-        props.setSecretKey(minio.getPassword());
-        props.setBucket(BUCKET);
-        props.setPresignTtl(Duration.ofMinutes(5));
+        MinioStorageProperties props = new MinioStorageProperties(
+                minio.getS3URL(), minio.getS3URL(), minio.getUserName(), minio.getPassword(),
+                BUCKET, Duration.ofMinutes(5));
         return new ArtifactStorage(client, client, props);
     }
 
     private IndexLoadProperties newProperties() {
-        IndexLoadProperties properties = new IndexLoadProperties();
-        properties.setDir(tempDir.resolve("load-work").toString());
-        return properties;
+        return new IndexLoadProperties(tempDir.resolve("load-work").toString(),
+                new IndexLoadProperties.Executor(1, 2, 50, "load-", Duration.ofSeconds(25)));
     }
 
     @Test

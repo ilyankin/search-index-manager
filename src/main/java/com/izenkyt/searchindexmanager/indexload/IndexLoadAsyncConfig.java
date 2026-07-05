@@ -23,14 +23,14 @@ public class IndexLoadAsyncConfig {
 
     @Bean(name = "loadExecutor", destroyMethod = "shutdown")
     public ThreadPoolTaskExecutor loadExecutor(IndexLoadProperties properties) {
-        IndexLoadProperties.Executor cfg = properties.getExecutor();
+        IndexLoadProperties.Executor cfg = properties.executor();
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(cfg.getCorePoolSize());
-        executor.setMaxPoolSize(cfg.getMaxPoolSize());
-        executor.setQueueCapacity(cfg.getQueueCapacity());
-        executor.setThreadNamePrefix(cfg.getThreadNamePrefix());
+        executor.setCorePoolSize(cfg.corePoolSize());
+        executor.setMaxPoolSize(cfg.maxPoolSize());
+        executor.setQueueCapacity(cfg.queueCapacity());
+        executor.setThreadNamePrefix(cfg.threadNamePrefix());
         executor.setWaitForTasksToCompleteOnShutdown(true);
-        executor.setAwaitTerminationMillis(cfg.getAwaitTermination().toMillis());
+        executor.setAwaitTerminationMillis(cfg.awaitTermination().toMillis());
         executor.initialize();
         return executor;
     }
@@ -38,7 +38,7 @@ public class IndexLoadAsyncConfig {
     @Bean
     ApplicationRunner clearLoadWorkdir(IndexLoadProperties properties) {
         return _ -> {
-            Path dir = Path.of(properties.getDir());
+            Path dir = Path.of(properties.dir());
             try {
                 FileSystemUtils.deleteRecursively(dir);
                 Files.createDirectories(dir);

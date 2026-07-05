@@ -24,17 +24,17 @@ public class IndexVersionEventPublisher {
 
     public void publish(IndexVersionUploadedEvent event) {
         String topicKey = event.indexId().toString();
-        long timeout = properties.getSendTimeout().toSeconds();
+        long timeout = properties.sendTimeout().toSeconds();
         log.debug("Publishing index-version-uploaded event for version {} to topic '{}' (key={}, timeout={}ms)",
-                event.versionId(), properties.getTopic(), topicKey, timeout);
+                event.versionId(), properties.topic(), topicKey, timeout);
         try {
-            kafkaTemplate.send(properties.getTopic(), topicKey, event)
+            kafkaTemplate.send(properties.topic(), topicKey, event)
                     .get(timeout, TimeUnit.SECONDS);
         } catch (TimeoutException e) {
             // Таймаут ещё не означает, что публикация не удалась. Из-за ожидания других брокеров
             // Главный брокер мог принять сообщение, но подтверждение не успело прийти от всех других (ask=all)
             throw new EventPublishAmbiguousException("Timed out waiting for ack publishing index-version-uploaded event "
-                    + "for version " + event.versionId() + " after " + properties.getSendTimeout().toSeconds() + "sec", e);
+                    + "for version " + event.versionId() + " after " + properties.sendTimeout().toSeconds() + "sec", e);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new EventPublishAmbiguousException("Interrupted while publishing index-version-uploaded event for version "
@@ -45,6 +45,6 @@ public class IndexVersionEventPublisher {
                     + event.versionId() + ": " + cause.getMessage(), cause);
         }
         log.info("Published index-version-uploaded event for version {} to topic '{}'",
-                event.versionId(), properties.getTopic());
+                event.versionId(), properties.topic());
     }
 }

@@ -1,31 +1,23 @@
 package com.izenkyt.searchindexmanager.event;
 
+import jakarta.validation.constraints.NotBlank;
+import org.hibernate.validator.constraints.time.DurationMin;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.bind.DefaultValue;
+import org.springframework.validation.annotation.Validated;
 
 import java.time.Duration;
 
 @ConfigurationProperties(prefix = "search.index.events")
-public class IndexEventsProperties {
+@Validated
+public record IndexEventsProperties(
+        @NotBlank
+        @DefaultValue("index-version-uploaded")
+        String topic,
 
-    private String topic = "index-version-uploaded";
-
-    private Duration sendTimeout = Duration.ofSeconds(10);
-
-    public String getTopic() {
-        return topic;
-    }
-
-    public void setTopic(String topic) {
-        this.topic = topic;
-    }
-
-    public Duration getSendTimeout() {
-        return sendTimeout;
-    }
-
-    public void setSendTimeout(Duration sendTimeout) {
-        this.sendTimeout = sendTimeout;
-    }
+        @DurationMin(seconds = 1)
+        @DefaultValue("10s")
+        Duration sendTimeout) {
 
     public String deadLetterTopic() {
         return topic + ".DLT";

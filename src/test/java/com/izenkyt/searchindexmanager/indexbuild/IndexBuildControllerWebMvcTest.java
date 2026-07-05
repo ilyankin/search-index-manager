@@ -10,6 +10,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.assertj.MockMvcTester;
 
+import java.io.InputStream;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -42,7 +43,7 @@ class IndexBuildControllerWebMvcTest {
     void build_returns202WithLocationAndBody() {
         UUID indexId = UUID.randomUUID();
         IndexVersionResponse response = createdResponse(indexId, 1);
-        given(buildService.startBuild(eq(indexId), any(java.io.InputStream.class)))
+        given(buildService.startBuild(eq(indexId), any(InputStream.class)))
                 .willReturn(response);
 
         assertThat(mvc.post().uri("/api/v1/indexes/" + indexId + "/build")
@@ -63,7 +64,7 @@ class IndexBuildControllerWebMvcTest {
     @Test
     void build_returns404_whenIndexMissing() {
         UUID indexId = UUID.randomUUID();
-        given(buildService.startBuild(eq(indexId), any(java.io.InputStream.class)))
+        given(buildService.startBuild(eq(indexId), any(InputStream.class)))
                 .willThrow(new NotFoundException("Index " + indexId + " not found"));
 
         assertThat(mvc.post().uri("/api/v1/indexes/" + indexId + "/build")
@@ -76,7 +77,7 @@ class IndexBuildControllerWebMvcTest {
     @Test
     void build_returns409_whenActiveBuildExists() {
         UUID indexId = UUID.randomUUID();
-        given(buildService.startBuild(eq(indexId), any(java.io.InputStream.class)))
+        given(buildService.startBuild(eq(indexId), any(InputStream.class)))
                 .willThrow(new IndexBuildConflictException("Index " + indexId + " already has an active build"));
 
         assertThat(mvc.post().uri("/api/v1/indexes/" + indexId + "/build")

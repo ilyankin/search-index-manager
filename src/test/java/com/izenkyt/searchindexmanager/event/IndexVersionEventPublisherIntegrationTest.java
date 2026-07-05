@@ -4,6 +4,7 @@ import com.izenkyt.searchindexmanager.TestcontainersConfiguration;
 import com.izenkyt.searchindexmanager.indexbuild.IndexBuildTestSupport;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.resttestclient.TestRestTemplate;
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
@@ -11,6 +12,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Bean;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -40,7 +43,7 @@ class IndexVersionEventPublisherIntegrationTest {
     @Autowired
     private TestEventConsumer testEventConsumer;
 
-    @org.junit.jupiter.api.io.TempDir
+    @TempDir
     static Path workdir;
 
     @DynamicPropertySource
@@ -52,7 +55,7 @@ class IndexVersionEventPublisherIntegrationTest {
         return IndexBuildTestSupport.createIndex(restTemplate, port, name);
     }
 
-    private org.springframework.http.ResponseEntity<Map> postBuild(UUID indexId, String ndjson) {
+    private ResponseEntity<Map> postBuild(UUID indexId, String ndjson) {
         return IndexBuildTestSupport.postBuild(restTemplate, port, indexId, ndjson);
     }
 
@@ -68,8 +71,8 @@ class IndexVersionEventPublisherIntegrationTest {
                 "{\"title\":\"hello world\",\"tag\":\"java\",\"count\":42}\n"
                         + "{\"title\":\"second doc\",\"tag\":\"python\",\"count\":7}\n";
 
-        org.springframework.http.ResponseEntity<Map> resp = postBuild(indexId, ndjson);
-        assertThat(resp.getStatusCode()).isEqualTo(org.springframework.http.HttpStatus.ACCEPTED);
+        ResponseEntity<Map> resp = postBuild(indexId, ndjson);
+        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.ACCEPTED);
         int version = ((Number) resp.getBody().get("version")).intValue();
         UUID versionId = UUID.fromString((String) resp.getBody().get("id"));
 

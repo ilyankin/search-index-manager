@@ -26,7 +26,7 @@ public class KafkaTopicsConfig {
     @Bean
     KafkaAdmin.NewTopics indexEventTopics(IndexEventsProperties properties) {
         return new KafkaAdmin.NewTopics(
-                TopicBuilder.name(properties.getTopic()).partitions(1).replicas(1).build(),
+                TopicBuilder.name(properties.topic()).partitions(1).replicas(1).build(),
                 TopicBuilder.name(properties.deadLetterTopic()).partitions(1).replicas(1).build());
     }
 

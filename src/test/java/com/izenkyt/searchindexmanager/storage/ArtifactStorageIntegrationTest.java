@@ -16,6 +16,7 @@ import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.time.Instant;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -37,12 +38,9 @@ class ArtifactStorageIntegrationTest {
     }
 
     private ArtifactStorage newStorage(String bucket) {
-        MinioStorageProperties props = new MinioStorageProperties();
-        props.setEndpoint(minio.getS3URL());
-        props.setAccessKey(minio.getUserName());
-        props.setSecretKey(minio.getPassword());
-        props.setBucket(bucket);
-        props.setPresignTtl(Duration.ofMinutes(5));
+        MinioStorageProperties props = new MinioStorageProperties(
+                minio.getS3URL(), minio.getS3URL(), minio.getUserName(), minio.getPassword(),
+                bucket, Duration.ofMinutes(5));
         MinioClient client = newClient(minio.getS3URL(), minio.getUserName(), minio.getPassword());
         return new ArtifactStorage(client, client, props);
     }
@@ -62,7 +60,7 @@ class ArtifactStorageIntegrationTest {
 
         ArtifactStorage.PresignedUrl presigned = storage.presignDownload(key);
         assertThat(presigned.url()).startsWith("http");
-        assertThat(presigned.expiresAt()).isAfter(java.time.Instant.now());
+        assertThat(presigned.expiresAt()).isAfter(Instant.now());
 
         HttpResponse<byte[]> resp = HttpClient.newHttpClient().send(
                 HttpRequest.newBuilder(URI.create(presigned.url())).GET().build(),
@@ -74,11 +72,9 @@ class ArtifactStorageIntegrationTest {
 
     @Test
     void upload_withUnreachableEndpoint_throwsReadableException() throws Exception {
-        MinioStorageProperties props = new MinioStorageProperties();
-        props.setEndpoint("http://localhost:1");
-        props.setAccessKey("minioadmin");
-        props.setSecretKey("minioadmin");
-        props.setBucket("missing-bucket");
+        MinioStorageProperties props = new MinioStorageProperties(
+                "http://localhost:1", "http://localhost:1", "minioadmin", "minioadmin",
+                "missing-bucket", Duration.ofMinutes(15));
         MinioClient client = newClient("http://localhost:1", "minioadmin", "minioadmin");
         ArtifactStorage storage = new ArtifactStorage(client, client, props);
 

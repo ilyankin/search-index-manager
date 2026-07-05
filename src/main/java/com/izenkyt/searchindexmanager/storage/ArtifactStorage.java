@@ -20,7 +20,6 @@ public class ArtifactStorage {
 
     private static final Logger log = LoggerFactory.getLogger(ArtifactStorage.class);
     private static final String CONTENT_TYPE = "application/gzip";
-    private static final Duration MAX_PRESIGN_TTL = Duration.ofDays(7);
 
     private final MinioClient client;
     private final MinioClient presignClient;
@@ -29,12 +28,6 @@ public class ArtifactStorage {
     public ArtifactStorage(@Qualifier("minioClient") MinioClient client,
                             @Qualifier("minioPresignClient") MinioClient presignClient,
                             MinioStorageProperties properties) {
-        Duration ttl = properties.getPresignTtl();
-        if (ttl.isZero() || ttl.isNegative() || ttl.compareTo(MAX_PRESIGN_TTL) > 0) {
-            throw new IllegalStateException(
-                    "search.index.storage.presign-ttl must be between 1s and " + MAX_PRESIGN_TTL
-                            + ", got " + ttl);
-        }
         this.client = client;
         this.presignClient = presignClient;
         this.properties = properties;
@@ -47,10 +40,10 @@ public class ArtifactStorage {
         } catch (IOException e) {
             throw new ArtifactStorageException("Failed to read artifact size for '" + key + "': " + e.getMessage(), e);
         }
-        log.debug("Uploading artifact {} ({} bytes) to bucket '{}'", key, size, properties.getBucket());
+        log.debug("Uploading artifact {} ({} bytes) to bucket '{}'", key, size, properties.bucket());
         try (InputStream in = Files.newInputStream(file)) {
             client.putObject(PutObjectArgs.builder()
-                    .bucket(properties.getBucket())
+                    .bucket(properties.bucket())
                     .object(key)
                     .stream(in, size, -1L)
                     .contentType(CONTENT_TYPE)
@@ -65,7 +58,7 @@ public class ArtifactStorage {
         log.debug("Deleting artifact {}", key);
         try {
             client.removeObject(RemoveObjectArgs.builder()
-                    .bucket(properties.getBucket())
+                    .bucket(properties.bucket())
                     .object(key)
                     .build());
         } catch (Exception e) {
@@ -75,16 +68,16 @@ public class ArtifactStorage {
     }
 
     public PresignedUrl presignDownload(String key) {
-        log.debug("Presigning download URL for {} (ttl={})", key, properties.getPresignTtl());
+        log.debug("Presigning download URL for {} (ttl={})", key, properties.presignTtl());
         try {
             String url = presignClient.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder()
                     .method(Http.Method.GET)
-                    .bucket(properties.getBucket())
+                    .bucket(properties.bucket())
                     .object(key)
-                    .expiry((int) properties.getPresignTtl().toSeconds(), TimeUnit.SECONDS)
+                    .expiry((int) properties.presignTtl().toSeconds(), TimeUnit.SECONDS)
                     .build()
             );
-            Instant expiresAt = Instant.now().plus(properties.getPresignTtl());
+            Instant expiresAt = Instant.now().plus(properties.presignTtl());
             log.debug("Presigned URL for {} expires at {}", key, expiresAt);
             return new PresignedUrl(url, expiresAt);
         } catch (Exception e) {
@@ -97,7 +90,7 @@ public class ArtifactStorage {
         try {
             Files.createDirectories(target.getParent());
             try (InputStream in = client.getObject(GetObjectArgs.builder()
-                    .bucket(properties.getBucket())
+                    .bucket(properties.bucket())
                     .object(key)
                     .build())) {
                 Files.copy(in, target, StandardCopyOption.REPLACE_EXISTING);

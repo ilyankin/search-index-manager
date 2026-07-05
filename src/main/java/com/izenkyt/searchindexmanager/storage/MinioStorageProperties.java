@@ -1,69 +1,36 @@
 package com.izenkyt.searchindexmanager.storage;
 
+import jakarta.validation.constraints.NotBlank;
+import org.hibernate.validator.constraints.time.DurationMax;
+import org.hibernate.validator.constraints.time.DurationMin;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.bind.DefaultValue;
+import org.springframework.validation.annotation.Validated;
 
 import java.time.Duration;
 
 @ConfigurationProperties(prefix = "search.index.storage")
-public class MinioStorageProperties {
+@Validated
+public record MinioStorageProperties(
+        @NotBlank
+        @DefaultValue("http://localhost:9000")
+        String endpoint,
 
-    private String endpoint = "http://localhost:9000";
+        @NotBlank
+        @DefaultValue("http://localhost:9000")
+        String publicEndpoint,
 
-    private String publicEndpoint = "http://localhost:9000";
+        @NotBlank
+        String accessKey,
 
-    private String accessKey = "minioadmin";
+        @NotBlank
+        String secretKey,
 
-    private String secretKey = "minioadmin";
+        @NotBlank
+        String bucket,
 
-    private String bucket = "search-index-artifacts";
-
-    private Duration presignTtl = Duration.ofMinutes(15);
-
-    public String getEndpoint() {
-        return endpoint;
-    }
-
-    public void setEndpoint(String endpoint) {
-        this.endpoint = endpoint;
-    }
-
-    public String getPublicEndpoint() {
-        return publicEndpoint;
-    }
-
-    public void setPublicEndpoint(String publicEndpoint) {
-        this.publicEndpoint = publicEndpoint;
-    }
-
-    public String getAccessKey() {
-        return accessKey;
-    }
-
-    public void setAccessKey(String accessKey) {
-        this.accessKey = accessKey;
-    }
-
-    public String getSecretKey() {
-        return secretKey;
-    }
-
-    public void setSecretKey(String secretKey) {
-        this.secretKey = secretKey;
-    }
-
-    public String getBucket() {
-        return bucket;
-    }
-
-    public void setBucket(String bucket) {
-        this.bucket = bucket;
-    }
-
-    public Duration getPresignTtl() {
-        return presignTtl;
-    }
-
-    public void setPresignTtl(Duration presignTtl) {
-        this.presignTtl = presignTtl;
-    }
+        @DurationMin(seconds = 1)
+        @DurationMax(days = 7)
+        @DefaultValue("15m")
+        Duration presignTtl) {
 }

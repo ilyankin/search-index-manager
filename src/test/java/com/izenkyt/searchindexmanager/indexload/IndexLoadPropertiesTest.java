@@ -3,6 +3,7 @@ package com.izenkyt.searchindexmanager.indexload;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -11,8 +12,8 @@ class IndexLoadPropertiesTest {
 
     @Test
     void targetDir_composesDirIndexIdAndVersion() {
-        IndexLoadProperties properties = new IndexLoadProperties();
-        properties.setDir("./load-work");
+        IndexLoadProperties properties = new IndexLoadProperties("./load-work",
+                new IndexLoadProperties.Executor(1, 2, 50, "load-", Duration.ofSeconds(25)));
         UUID indexId = UUID.randomUUID();
 
         Path result = properties.targetDir(indexId, 3);

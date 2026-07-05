@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -90,7 +91,7 @@ public class IndexLoadPipeline {
     }
 
     private Path createWorkDir() throws IOException {
-        Path base = Path.of(properties.getDir());
+        Path base = Path.of(properties.dir());
         Files.createDirectories(base);
         return Files.createTempDirectory(base, "tmp-");
     }
@@ -114,7 +115,7 @@ public class IndexLoadPipeline {
         }
         try (InputStream in = Files.newInputStream(file);
              DigestInputStream digestIn = new DigestInputStream(in, digest)) {
-            digestIn.transferTo(java.io.OutputStream.nullOutputStream());
+            digestIn.transferTo(OutputStream.nullOutputStream());
         }
         return HexFormat.of().formatHex(digest.digest());
     }

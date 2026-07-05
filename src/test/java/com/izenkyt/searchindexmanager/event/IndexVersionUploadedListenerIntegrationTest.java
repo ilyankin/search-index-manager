@@ -8,6 +8,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.resttestclient.TestRestTemplate;
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
@@ -57,7 +58,7 @@ class IndexVersionUploadedListenerIntegrationTest {
     @Autowired
     private KafkaTemplate<Object, Object> kafkaTemplate;
 
-    @org.junit.jupiter.api.io.TempDir
+    @TempDir
     static Path workdir;
 
     @DynamicPropertySource
@@ -137,7 +138,7 @@ class IndexVersionUploadedListenerIntegrationTest {
     @Test
     void poisonPill_goesToDlt() {
         String marker = "poison-pill-" + UUID.randomUUID();
-        kafkaTemplate.send(eventsProperties.getTopic(), marker, marker);
+        kafkaTemplate.send(eventsProperties.topic(), marker, marker);
 
         try (Consumer<String, byte[]> dltConsumer = newDltConsumer()) {
             await().atMost(Duration.ofSeconds(30)).untilAsserted(() ->

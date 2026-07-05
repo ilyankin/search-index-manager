@@ -6,6 +6,7 @@ import org.apache.lucene.document.StoredField;
 import org.apache.lucene.index.IndexableField;
 import org.junit.jupiter.api.Test;
 
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -102,7 +103,7 @@ class DocumentMapperTest {
     @Test
     void throwsOnNullValue() {
         DocumentMapper mapper = mapperFor(Map.of("title", FieldType.TEXT));
-        Map<String, Object> row = new java.util.HashMap<>();
+        Map<String, Object> row = new HashMap<>();
         row.put("title", null);
 
         assertThatThrownBy(() -> mapper.toLuceneDocument(row, 3))

@@ -20,8 +20,8 @@ public class MinioConfig {
     @Bean
     public MinioClient minioClient(MinioStorageProperties properties) {
         return MinioClient.builder()
-                .endpoint(properties.getEndpoint())
-                .credentials(properties.getAccessKey(), properties.getSecretKey())
+                .endpoint(properties.endpoint())
+                .credentials(properties.accessKey(), properties.secretKey())
                 .build();
     }
 
@@ -33,8 +33,8 @@ public class MinioConfig {
     @Bean
     public MinioClient minioPresignClient(MinioStorageProperties properties) {
         return MinioClient.builder()
-                .endpoint(properties.getPublicEndpoint())
-                .credentials(properties.getAccessKey(), properties.getSecretKey())
+                .endpoint(properties.publicEndpoint())
+                .credentials(properties.accessKey(), properties.secretKey())
                 .region("us-east-1") // default
                 .build();
     }
@@ -43,7 +43,7 @@ public class MinioConfig {
     ApplicationRunner ensureMinioBucket(@Qualifier("minioClient") MinioClient minioClient,
                                          MinioStorageProperties properties) {
         return _ -> {
-            String bucket = properties.getBucket();
+            String bucket = properties.bucket();
             try {
                 if (!minioClient.bucketExists(BucketExistsArgs.builder().bucket(bucket).build())) {
                     minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucket).build());
