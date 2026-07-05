@@ -31,6 +31,7 @@ public class TestcontainersConfiguration {
     DynamicPropertyRegistrar minioPropertiesRegistrar(MinIOContainer minioContainer) {
         return registry -> {
             registry.add("search.index.storage.endpoint", minioContainer::getS3URL);
+            registry.add("search.index.storage.public-endpoint", minioContainer::getS3URL);
             registry.add("search.index.storage.access-key", minioContainer::getUserName);
             registry.add("search.index.storage.secret-key", minioContainer::getPassword);
         };

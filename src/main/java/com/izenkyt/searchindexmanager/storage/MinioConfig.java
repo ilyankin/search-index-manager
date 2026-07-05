@@ -5,6 +5,7 @@ import io.minio.MakeBucketArgs;
 import io.minio.MinioClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -24,8 +25,23 @@ public class MinioConfig {
                 .build();
     }
 
+    // Для presigned URL используется отдельный MinIOClient с публичным endpoint.
+    // Хост endpoint'а является частью подписи, поэтому ссылка должна сразу
+    // подписываться для адреса, доступного клиентам. Регион задаётся явно, чтобы
+    // исключить вызов GetBucketLocation, поскольку публичный endpoint может быть
+    // недоступен самому приложению.
     @Bean
-    ApplicationRunner ensureMinioBucket(MinioClient minioClient, MinioStorageProperties properties) {
+    public MinioClient minioPresignClient(MinioStorageProperties properties) {
+        return MinioClient.builder()
+                .endpoint(properties.getPublicEndpoint())
+                .credentials(properties.getAccessKey(), properties.getSecretKey())
+                .region("us-east-1") // default
+                .build();
+    }
+
+    @Bean
+    ApplicationRunner ensureMinioBucket(@Qualifier("minioClient") MinioClient minioClient,
+                                         MinioStorageProperties properties) {
         return _ -> {
             String bucket = properties.getBucket();
             try {

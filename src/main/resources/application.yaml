@@ -34,6 +34,7 @@ search:
         thread-name-prefix: build-
     storage:
       endpoint: ${SEARCH_INDEX_STORAGE_ENDPOINT:http://localhost:9000}
+      public-endpoint: ${SEARCH_INDEX_STORAGE_PUBLIC_ENDPOINT:http://localhost:9000}
       access-key: ${SEARCH_INDEX_STORAGE_ACCESS_KEY:minioadmin}
       secret-key: ${SEARCH_INDEX_STORAGE_SECRET_KEY:minioadmin}
       bucket: ${SEARCH_INDEX_STORAGE_BUCKET:search-index-artifacts}

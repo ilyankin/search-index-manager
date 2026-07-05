@@ -43,7 +43,8 @@ class ArtifactStorageIntegrationTest {
         props.setSecretKey(minio.getPassword());
         props.setBucket(bucket);
         props.setPresignTtl(Duration.ofMinutes(5));
-        return new ArtifactStorage(newClient(minio.getS3URL(), minio.getUserName(), minio.getPassword()), props);
+        MinioClient client = newClient(minio.getS3URL(), minio.getUserName(), minio.getPassword());
+        return new ArtifactStorage(client, client, props);
     }
 
     @Test
@@ -78,7 +79,8 @@ class ArtifactStorageIntegrationTest {
         props.setAccessKey("minioadmin");
         props.setSecretKey("minioadmin");
         props.setBucket("missing-bucket");
-        ArtifactStorage storage = new ArtifactStorage(newClient("http://localhost:1", "minioadmin", "minioadmin"), props);
+        MinioClient client = newClient("http://localhost:1", "minioadmin", "minioadmin");
+        ArtifactStorage storage = new ArtifactStorage(client, client, props);
 
         Path file = tempDir.resolve("index.tar.gz");
         Files.write(file, new byte[]{1, 2, 3});

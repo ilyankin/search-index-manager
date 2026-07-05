@@ -7,6 +7,7 @@ import io.minio.RemoveObjectArgs;
 import io.minio.http.Method;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -25,9 +26,12 @@ public class ArtifactStorage {
     private static final Duration MAX_PRESIGN_TTL = Duration.ofDays(7);
 
     private final MinioClient client;
+    private final MinioClient presignClient;
     private final MinioStorageProperties properties;
 
-    public ArtifactStorage(MinioClient client, MinioStorageProperties properties) {
+    public ArtifactStorage(@Qualifier("minioClient") MinioClient client,
+                            @Qualifier("minioPresignClient") MinioClient presignClient,
+                            MinioStorageProperties properties) {
         Duration ttl = properties.getPresignTtl();
         if (ttl.isZero() || ttl.isNegative() || ttl.compareTo(MAX_PRESIGN_TTL) > 0) {
             throw new IllegalStateException(
@@ -35,6 +39,7 @@ public class ArtifactStorage {
                             + ", got " + ttl);
         }
         this.client = client;
+        this.presignClient = presignClient;
         this.properties = properties;
     }
 
@@ -75,7 +80,7 @@ public class ArtifactStorage {
     public PresignedUrl download(String key) {
         log.debug("Presigning download URL for {} (ttl={})", key, properties.getPresignTtl());
         try {
-            String url = client.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder()
+            String url = presignClient.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder()
                     .method(Method.GET)
                     .bucket(properties.getBucket())
                     .object(key)

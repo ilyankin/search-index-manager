@@ -19,7 +19,7 @@ class ArtifactStorageTest {
         MinioStorageProperties properties = new MinioStorageProperties();
         properties.setPresignTtl(Duration.ofDays(30));
 
-        assertThatThrownBy(() -> new ArtifactStorage(client, properties))
+        assertThatThrownBy(() -> new ArtifactStorage(client, client, properties))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("presign-ttl");
     }
@@ -29,7 +29,7 @@ class ArtifactStorageTest {
         MinioStorageProperties properties = new MinioStorageProperties();
         properties.setPresignTtl(Duration.ZERO);
 
-        assertThatThrownBy(() -> new ArtifactStorage(client, properties))
+        assertThatThrownBy(() -> new ArtifactStorage(client, client, properties))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("presign-ttl");
     }

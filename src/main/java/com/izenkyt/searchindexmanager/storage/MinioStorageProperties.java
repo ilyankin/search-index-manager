@@ -9,6 +9,8 @@ public class MinioStorageProperties {
 
     private String endpoint = "http://localhost:9000";
 
+    private String publicEndpoint = "http://localhost:9000";
+
     private String accessKey = "minioadmin";
 
     private String secretKey = "minioadmin";
@@ -23,6 +25,14 @@ public class MinioStorageProperties {
 
     public void setEndpoint(String endpoint) {
         this.endpoint = endpoint;
+    }
+
+    public String getPublicEndpoint() {
+        return publicEndpoint;
+    }
+
+    public void setPublicEndpoint(String publicEndpoint) {
+        this.publicEndpoint = publicEndpoint;
     }
 
     public String getAccessKey() {
