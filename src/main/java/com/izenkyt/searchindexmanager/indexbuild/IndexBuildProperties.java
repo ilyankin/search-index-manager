@@ -1,84 +1,52 @@
 package com.izenkyt.searchindexmanager.indexbuild;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
+import org.hibernate.validator.constraints.time.DurationMin;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.bind.DefaultValue;
+import org.springframework.validation.annotation.Validated;
 
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.UUID;
 
 @ConfigurationProperties(prefix = "search.index.build")
-public class IndexBuildProperties {
+@Validated
+public record IndexBuildProperties(
+        @NotBlank
+        @DefaultValue("./build-work")
+        String workdir,
 
-    private String workdir = "./build-work";
-
-    private final Executor executor = new Executor();
-
-    public String getWorkdir() {
-        return workdir;
-    }
-
-    public void setWorkdir(String workdir) {
-        this.workdir = workdir;
-    }
+        @Valid
+        @DefaultValue
+        Executor executor) {
 
     public Path versionDir(UUID indexId, UUID versionId) {
         return Path.of(workdir).resolve(indexId.toString()).resolve(versionId.toString());
     }
 
-    public Executor getExecutor() {
-        return executor;
-    }
+    public record Executor(
+            @Positive
+            @DefaultValue("1")
+            int corePoolSize,
 
-    public static class Executor {
+            @Positive
+            @DefaultValue("2")
+            int maxPoolSize,
 
-        private int corePoolSize = 1;
+            @PositiveOrZero
+            @DefaultValue("50")
+            int queueCapacity,
 
-        private int maxPoolSize = 2;
+            @NotBlank
+            @DefaultValue("build-")
+            String threadNamePrefix,
 
-        private int queueCapacity = 50;
-
-        private String threadNamePrefix = "build-";
-
-        private Duration awaitTermination = Duration.ofSeconds(25);
-
-        public int getCorePoolSize() {
-            return corePoolSize;
-        }
-
-        public void setCorePoolSize(int corePoolSize) {
-            this.corePoolSize = corePoolSize;
-        }
-
-        public int getMaxPoolSize() {
-            return maxPoolSize;
-        }
-
-        public void setMaxPoolSize(int maxPoolSize) {
-            this.maxPoolSize = maxPoolSize;
-        }
-
-        public int getQueueCapacity() {
-            return queueCapacity;
-        }
-
-        public void setQueueCapacity(int queueCapacity) {
-            this.queueCapacity = queueCapacity;
-        }
-
-        public String getThreadNamePrefix() {
-            return threadNamePrefix;
-        }
-
-        public void setThreadNamePrefix(String threadNamePrefix) {
-            this.threadNamePrefix = threadNamePrefix;
-        }
-
-        public Duration getAwaitTermination() {
-            return awaitTermination;
-        }
-
-        public void setAwaitTermination(Duration awaitTermination) {
-            this.awaitTermination = awaitTermination;
-        }
+            @DurationMin(seconds = 1)
+            @DefaultValue("25s")
+            Duration awaitTermination) {
     }
 }

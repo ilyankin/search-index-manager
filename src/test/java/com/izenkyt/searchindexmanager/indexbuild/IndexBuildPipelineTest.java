@@ -18,6 +18,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.Map;
 import java.util.UUID;
 
@@ -59,8 +60,8 @@ class IndexBuildPipelineTest {
 
     @BeforeEach
     void setUp() {
-        IndexBuildProperties properties = new IndexBuildProperties();
-        properties.setWorkdir(workdir.toString());
+        IndexBuildProperties properties = new IndexBuildProperties(workdir.toString(),
+                new IndexBuildProperties.Executor(1, 2, 50, "build-", Duration.ofSeconds(25)));
         pipeline = new IndexBuildPipeline(stateStore, indexBuilder, packager, storage, eventPublisher, properties);
 
         indexId = UUID.randomUUID();

@@ -13,14 +13,14 @@ public class IndexBuildAsyncConfig {
 
     @Bean(name = "buildExecutor", destroyMethod = "shutdown")
     public ThreadPoolTaskExecutor buildExecutor(IndexBuildProperties properties) {
-        IndexBuildProperties.Executor cfg = properties.getExecutor();
+        IndexBuildProperties.Executor cfg = properties.executor();
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(cfg.getCorePoolSize());
-        executor.setMaxPoolSize(cfg.getMaxPoolSize());
-        executor.setQueueCapacity(cfg.getQueueCapacity());
-        executor.setThreadNamePrefix(cfg.getThreadNamePrefix());
+        executor.setCorePoolSize(cfg.corePoolSize());
+        executor.setMaxPoolSize(cfg.maxPoolSize());
+        executor.setQueueCapacity(cfg.queueCapacity());
+        executor.setThreadNamePrefix(cfg.threadNamePrefix());
         executor.setWaitForTasksToCompleteOnShutdown(true);
-        executor.setAwaitTerminationMillis(cfg.getAwaitTermination().toMillis());
+        executor.setAwaitTerminationMillis(cfg.awaitTermination().toMillis());
         executor.initialize();
         return executor;
     }
